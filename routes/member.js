@@ -1,6 +1,12 @@
 var express = require('express');
 var router = express.Router();
 var database=require('../module/mysql');
+var { user, message, version, report, product, member } = require('../module/model');
+var { success, failed } = require('../module/val');
+
+var addMember=(idArray,character)=>{
+
+}
 
 /* GET users listing. */
 router.get('/getDeveloper', function (req, res, next) {
@@ -16,6 +22,7 @@ router.get('/getAdmin', function (req, res, next) {
 });
 
 router.post('/addMember', function (req, res, next) {
+    
     res.send('respond with addMember');
 });
 

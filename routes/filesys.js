@@ -1,32 +1,42 @@
 var express = require('express');
-var app = express();
+var path = require('path');
+var app = express.Router();
 var fs = require("fs");
-var router = express.Router();
+var router = express();
 
 var bodyParser = require('body-parser');
 var multer  = require('multer');
+var muilter = require('../module/multerUtil');
  
 app.use(express.static('public'));
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer({ dest: '/package/'}).array('image'));
- 
+app.use(bodyParser.urlencoded({ extended: false}));
+// app.use(multer({ dest: '/package/'}).single('file'));
+var urlencodedParser = bodyParser.urlencoded({ extended: false })
 app.get('/index.htm', function (req, res) {
-   res.sendFile( __dirname + "/" + "index.htm" );
+   res.send( __dirname + "/" + "index.htm" );
 })
+var upload=multer({dest:'package/'});
  
+app.post('/Upload',muilter.single('file'),function (req, res) {
+ 
+    console.log(req.body);
+  console.log(req.file);
+  res.send( __dirname + "/" + "index.htm" );
+ })
+  
 app.post('/fileUpload', function (req, res) {
  
-   console.log(req.files[0]);  // 上传的文件信息
+   console.log(req.file);  // 上传的文件信息
  
-   var des_file = __dirname + "/" + req.files[0].originalname;
-   fs.readFile( req.files[0].path, function (err, data) {
+   var des_file = __dirname + "/" + req.file.originalname;
+   fs.readFile( req.file.path, function (err, data) {
         fs.writeFile(des_file, data, function (err) {
          if( err ){
               console.log( err );
          }else{
                response = {
                    message:'File uploaded successfully', 
-                   filename:req.files[0].originalname
+                   filename:req.file.originalname
               };
           }
           console.log( response );
@@ -36,10 +46,13 @@ app.post('/fileUpload', function (req, res) {
 })
  
 app.get('/fileDownload',function(req,res){
-    res.sendFile( __dirname + "/" + "index.htm" );
+    var package=path.resolve(__dirname,'..');
+    console.log(package);
+    
+    res.sendFile( package+"/package/file-1523261663992.rar" );
 })
 
-var server = app.listen(8081, function () {
+var server = router.listen(8081, function () {
  
   var host = server.address().address
   var port = server.address().port
@@ -48,4 +61,4 @@ var server = app.listen(8081, function () {
  
 })
 
-module.exports = router;
+module.exports = app;
