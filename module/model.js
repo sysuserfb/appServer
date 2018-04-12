@@ -27,6 +27,12 @@ module.exports = {
       type: Sequelize.TINYINT(3),
       defaultValue:1
     }
+  },{
+    defaultScope:{
+      attributes:{
+        exclude:['create_at','update_at','user_pwd','user_freeze','user_power']
+      }
+    }
   }),
 
   product: sequelize.define('product', {
@@ -38,17 +44,39 @@ module.exports = {
     },
     system: {
       type: Sequelize.STRING(32)
+    },
+    admin_id:{
+      type:Sequelize.INTEGER
+    },
+    admin_name:{
+      type:Sequelize.STRING(32)
+    }
+  },{
+    defaultScope:{
+      attributes:{
+        exclude:['create_at','update_at']
+      }
     }
   }),
   member: sequelize.define('member', {
-  //   id: {
-  //     type: Sequelize.INTEGER,
-  //     primaryKey: true,
-  //     autoIncrement: true
-  // },
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+  },
     charact: {
       //1-项目管理者，2-项目开发者，3-项目测试员
-      type: Sequelize.TINYINT(3)
+      type: Sequelize.INTEGER,
+      unique:"p_u_ch"
+    },
+    user_id:{
+      type:Sequelize.INTEGER,
+      
+      unique:"p_u_ch"
+    },
+    product_id:{
+      type:Sequelize.INTEGER,
+      unique:"p_u_ch"
     }
   }),
   version: sequelize.define('version', {
@@ -73,6 +101,12 @@ module.exports = {
     status: {
       // process, failed , publish
       type: Sequelize.STRING(16)
+    }
+  },{
+    defaultScope:{
+      attributes:{
+        exclude:['md5','normal_name','pack_path']
+      }
     }
   }),
   report: sequelize.define('report', {

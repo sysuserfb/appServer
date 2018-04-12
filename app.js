@@ -13,6 +13,7 @@ var productRouter = require('./routes/product');
 var app = express();
 
 // view engine setup
+//开启mysql服务
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
