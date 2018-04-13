@@ -39,7 +39,44 @@ router.get('/getUserList', function (req, res, next) {
 
     res.json(result);
   })
+});
+router.get('/getMessage', function (req, res, next) {
+  message.findAll({ where: { user_id: req.query.user_id } }).then((msgs) => {
+    var ret = success;
+    ret.msg = "获取成功";
+    ret.sysMsg = msgs;
+    res.json(ret);
+  }, err => {
+    var ret = failed;
+    ret.msg = err;
+    res.json()
+  })
+});
+router.get('/getReport', function (req, res, next) {
+  report.findAll({ where: { version_id: req.query.version_id } }).then((reps) => {
+    var ret = success;
+    ret.msg = "获取成功";
+    ret.report = reps;
+    res.json(ret);
+  }, err => {
+    var ret = failed;
+    ret.msg = err;
+    res.json()
+  })
 })
+
+router.post('/submitReport', function (req, res, next) {
+  var form = req.body;
+  user.findById(form.user_id).then((user) => {
+    user.createReport({ content: form.content, version_id: form.version_id }).then(() => {
+      var result = success;
+      result.msg = "提交成功";
+      res.json(result);
+    })
+
+  })
+});
+
 router.post('/setProfile', function (req, res, next) {
   var form = req.body;
   user.update({

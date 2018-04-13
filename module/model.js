@@ -25,15 +25,15 @@ module.exports = {
     },
     user_power: {
       type: Sequelize.TINYINT(3),
-      defaultValue:1
+      defaultValue: 1
     }
-  },{
-    defaultScope:{
-      attributes:{
-        exclude:['create_at','update_at','user_pwd','user_freeze','user_power']
+  }, {
+      defaultScope: {
+        attributes: {
+          exclude: ['created_at', 'updated_at', 'user_pwd', 'user_freeze', 'user_power']
+        }
       }
-    }
-  }),
+    }),
 
   product: sequelize.define('product', {
     product_name: {
@@ -45,45 +45,51 @@ module.exports = {
     system: {
       type: Sequelize.STRING(32)
     },
-    admin_id:{
-      type:Sequelize.INTEGER
+    admin_id: {
+      type: Sequelize.INTEGER
     },
-    admin_name:{
-      type:Sequelize.STRING(32)
+    admin_name: {
+      type: Sequelize.STRING(32)
     }
-  },{
-    defaultScope:{
-      attributes:{
-        exclude:['create_at','update_at']
+  }, {
+      defaultScope: {
+        attributes: {
+          exclude: ['created_at', 'updated_at']
+        }
       }
-    }
-  }),
+    }),
   member: sequelize.define('member', {
     id: {
       type: Sequelize.INTEGER,
       primaryKey: true,
       autoIncrement: true
-  },
+    },
     charact: {
       //1-项目管理者，2-项目开发者，3-项目测试员
       type: Sequelize.INTEGER,
-      unique:"p_u_ch"
+      unique: "p_u_ch"
     },
-    user_id:{
-      type:Sequelize.INTEGER,
-      
-      unique:"p_u_ch"
+    user_id: {
+      type: Sequelize.INTEGER,
+
+      unique: "p_u_ch"
     },
-    product_id:{
-      type:Sequelize.INTEGER,
-      unique:"p_u_ch"
+    product_id: {
+      type: Sequelize.INTEGER,
+      unique: "p_u_ch"
     }
-  }),
+  }, {
+      defaultScope: {
+        attributes: {
+          exclude: ['id', 'created_at', 'updated_at']
+        }
+      }
+    }),
   version: sequelize.define('version', {
     version_num: {
       type: Sequelize.STRING(32)
     },
-    md5:{
+    md5: {
       type: Sequelize.STRING(64),
       allowNull: true
     },
@@ -102,13 +108,21 @@ module.exports = {
       // process, failed , publish
       type: Sequelize.STRING(16)
     }
-  },{
-    defaultScope:{
-      attributes:{
-        exclude:['md5','normal_name','pack_path']
+  }, {
+      defaultScope: {
+        attributes: {
+          exclude: ['md5', 'normal_name', 'pack_path']
+        }
+      },
+      scopes: {
+        detail: {
+          attributes: {
+            exclude: ['created_at', 'updated_at']
+          }
+        }
       }
-    }
-  }),
+
+    }),
   report: sequelize.define('report', {
     content: {
       type: Sequelize.TEXT

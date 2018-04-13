@@ -22,9 +22,11 @@ router.get('/getProductDetail', function (req, res, next) {
     var form = req.query;
     member.findAll({
         where: { product_id: form.product_id }, attributes: ['charact', 'product_id'],
-        include: [{ model: user, attributes: ['id', 'user_name', 'user_email', 'user_phone', 'user_image_url'] }]
+        include: [{ model: user, 
+            attributes: ['id', 'user_name', 'user_email', 'user_phone', 'user_image_url'] }]
     }).then((mem) => {
-        version.findAll({ where: { product_id: form.product_id, status: ['process', 'publish'] } }).then((ver) => {
+        version.findAll({ where: { product_id: form.product_id, status: ['process', 'publish'] } })
+        .then((ver) => {
             var detail = {};
             detail.admin={};
             detail.dev = [];
@@ -60,8 +62,7 @@ router.get('/getProductList', function (req, res, next) {
     member.findAll({
         where: { user_id: form.user_id }, attributes: ['charact', 'product_id'],
         include: [{
-            model: product,
-            attributes: { exclude: ['created_at', 'updated_at'] },
+            model: product,attributes: { exclude: ['created_at', 'updated_at'] },
             include: [{
                 model: version, where: { status: "publish" },
                 required: false, attributes: ['version_num']
@@ -165,7 +166,7 @@ router.post('/deleteProduct', function (req, res) {
     sequelize.transaction(function (t) {
         return product.destroy({ where: { id: form.product_id }, transaction: t })
             .then((affectRows) => {
-                if (affectRows != 0) {
+                if (affectRows != 0) {//delete package
                     version.destroy({ where: { id: form.product_id } })
                         .then((affectRows1) => {
                             if (affectRows1 != 0) {

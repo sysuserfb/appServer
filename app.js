@@ -6,6 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var versionRouter = require('./routes/version');
 var fileRouter=require('./routes/filesys');
 var memberRouter = require('./routes/member');
 var productRouter = require('./routes/product');
@@ -28,6 +29,7 @@ app.use('/user', usersRouter);
 app.use('/member', memberRouter);
 app.use('/filesys', fileRouter);
 app.use('/product', productRouter);
+app.use('/version', versionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
