@@ -5,6 +5,7 @@ const Op = Sequelize.Op;
 user.hasMany(message, { as: 'sysMsg' });
 message.belongsTo(user);
 user.hasMany(report);
+report.belongsTo(user);
 version.hasMany(report);
 product.hasMany(version);
 // user.belongsToMany(product, { through: member });

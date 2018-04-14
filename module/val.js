@@ -23,6 +23,20 @@ module.exports = {
         ret.msg = msg;
         return ret;
     },
+    _message:{
+        addAdmin:{
+            title:"成员变动",
+            content:"您成为了项目管理员，产品："
+        },
+        addDev:{
+            title:"成员变动",
+            content:"您成为了项目开发员，产品："
+        },
+        addTest:{
+            title:"成员变动",
+            content:"您成为了项目测试员，产品："
+        }
+    },
     status: {
         process: 'process',
         failed: 'failed',

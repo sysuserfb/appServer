@@ -6,12 +6,9 @@ var sequelize = require('../module/db');
 var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 var { user, message, version, report, product, member } = require('../module/model');
-var { success, failed, status, status_code } = require('../module/val');
-var crypto = require('crypto');
+var { success, failed, status, status_code, _message } = require('../module/val');
+var md5 = require('md5')
 var { addVersion, addMember, addMultiMember } = require('../module/relateMethod');
-var md5 = (text) => {
-    return crypto.createHash('md5').update(text).digest('hex');
-};
 
 var a = (params) => {
     return 3;
@@ -22,47 +19,49 @@ router.get('/getProductDetail', function (req, res, next) {
     var form = req.query;
     member.findAll({
         where: { product_id: form.product_id }, attributes: ['charact', 'product_id'],
-        include: [{ model: user, 
-            attributes: ['id', 'user_name', 'user_email', 'user_phone', 'user_image_url'] }]
+        include: [{
+            model: user,
+            attributes: ['id', 'user_name', 'user_email', 'user_phone', 'user_image_url']
+        }]
     }).then((mem) => {
         version.findAll({ where: { product_id: form.product_id, status: ['process', 'publish'] } })
-        .then((ver) => {
-            var detail = {};
-            detail.admin={};
-            detail.dev = [];
-            detail.test = [];
-            detail.version_cur = {};
-            detail.version_dev = {};
-            for (var i = 0; i < ver.length; i++) {
-                if (ver[i].status === 'publish') {
-                    detail.version_cur = ver[i];
-                } else if (ver[i].status === 'process') {
-                    detail.version_dev = ver[i];
+            .then((ver) => {
+                var detail = {};
+                detail.admin = {};
+                detail.dev = [];
+                detail.test = [];
+                detail.version_cur = {};
+                detail.version_dev = {};
+                for (var i = 0; i < ver.length; i++) {
+                    if (ver[i].status === 'publish') {
+                        detail.version_cur = ver[i];
+                    } else if (ver[i].status === 'process') {
+                        detail.version_dev = ver[i];
+                    }
                 }
-            }
-            for (var i = 0; i < mem.length; i++) {
-                if (mem[i].charact === 1) {
-                    detail.admin = mem[i].user;
-                } else if (mem[i].charact === 2) {
-                    detail.dev.push(mem[i].user);
-                } else if (mem[i].charact === 3) {
-                    detail.test.push(mem[i].user)
+                for (var i = 0; i < mem.length; i++) {
+                    if (mem[i].charact === 1) {
+                        detail.admin = mem[i].user;
+                    } else if (mem[i].charact === 2) {
+                        detail.dev.push(mem[i].user);
+                    } else if (mem[i].charact === 3) {
+                        detail.test.push(mem[i].user)
+                    }
                 }
-            }
-            console.log(detail);
-            var ret=success;
-            ret.msg="查询成功";
-            ret.detail=detail;
-            res.json(ret);
-        },err=>{res.json(failed)})
-    },err=>res.json(failed))
+                console.log(detail);
+                var ret = success;
+                ret.msg = "查询成功";
+                ret.detail = detail;
+                res.json(ret);
+            }, err => { res.json(failed) })
+    }, err => res.json(failed))
 });
 router.get('/getProductList', function (req, res, next) {
     var form = req.query;
     member.findAll({
         where: { user_id: form.user_id }, attributes: ['charact', 'product_id'],
         include: [{
-            model: product,attributes: { exclude: ['created_at', 'updated_at'] },
+            model: product, attributes: { exclude: ['created_at', 'updated_at'] },
             include: [{
                 model: version, where: { status: "publish" },
                 required: false, attributes: ['version_num']
@@ -104,8 +103,6 @@ router.post('/newProduct', muilter.single('file'), function (req, res, next) {
     var test = form.test_id.split(',');
     var ret;
 
-    //var filemd5=md5(file.buffer);
-    // console.log('file upload finished--'+filemd5);
     sequelize.transaction(function (t) {
         return product.findOrCreate({
             where: { product_name: form.product_name },
@@ -127,19 +124,28 @@ router.post('/newProduct', muilter.single('file'), function (req, res, next) {
                         pack_path: file.path,
                         status_code: status_code.test,
                         status: status.process,
-                        product_id: prod.id
+                        product_id: prod.id,
+                        md5: md5(file)
                     }, transaction: t
                 }).spread((ver, isCreateVer) => {
                     if (isCreateVer) {
                         var list = [{ product_id: prod.id, user_id: form.admin_id, charact: 1 }];
                         for (var i = 0; i < dev.length; i++) {
-                            list.push({ product_id: prod.id, user_id: dev[i], charact: 2 });
+                            list.push({
+                                product_id: prod.id, user_id: dev[i], charact: 2,
+                                title: _message.addDev.title, content: _message.addDev.content
+                            });
                         }
-                        for (var i = 0; i < dev.length; i++) {
-                            list.push({ product_id: prod.id, user_id: test[i], charact: 3 });
+                        for (var i = 0; i < test.length; i++) {
+                            list.push({
+                                product_id: prod.id, user_id: test[i], charact: 3,
+                                title: _message.addTest.title, content: _message.addTest.content
+                            });
                         }
-                        member.bulkCreate(list)
-                        return;//store the package
+                        member.bulkCreate(list).then(() => {
+                            message.bulkCreate(list);
+                        })
+                        return;
                     } else {
                         throw new Error('该版本已存在');
                     }
@@ -154,6 +160,13 @@ router.post('/newProduct', muilter.single('file'), function (req, res, next) {
         ret.msg = "产品创建成功";
         res.json(ret);
     }).catch((err) => {
+        //delete the package
+        var curPath = path.resolve(__dirname, '..') + "\\" + file.path;
+        fs.exists(curPath, (exist) => {
+            if (exist) {
+                fs.unlinkSync(curPath);
+            }
+        })
         console.log(err);
         ret = failed;
         ret.msg = err.message;
@@ -167,21 +180,33 @@ router.post('/deleteProduct', function (req, res) {
         return product.destroy({ where: { id: form.product_id }, transaction: t })
             .then((affectRows) => {
                 if (affectRows != 0) {//delete package
-                    version.destroy({ where: { id: form.product_id } })
-                        .then((affectRows1) => {
-                            if (affectRows1 != 0) {
-                                console.log('删除版本成功');
-                                member.destroy({ where: { id: form.product_id } }).then((af2) => {
-                                    if (af2 != 0) {
-                                        console.log('删除成员成功');
-                                    } else {
-                                        console.log('找不到该产品的成员');
-                                    }
-                                });
-                            } else {
-                                console.log('找不到该产品的版本');
-                            }
-                        })
+                    version.findAll({ where: { id: form.product_id } }).then((vers) => {
+                        for (var i = 0; i < vers.length; i++) {
+                            var curPath = path.resolve(__dirname, '..') + "\\" + vers[i].pack_path;
+                            fs.exists(curPath, (exist) => {
+                                if (exist) {
+                                    fs.unlinkSync(curPath);
+                                }
+                            })
+                        }
+                    }).then(() => {
+                        version.destroy({ where: { id: form.product_id } })
+                            .then((affectRows1) => {
+                                if (affectRows1 != 0) {
+                                    console.log('删除版本成功');
+                                    member.destroy({ where: { id: form.product_id } }).then((af2) => {
+                                        if (af2 != 0) {
+                                            console.log('删除成员成功');
+                                        } else {
+                                            console.log('找不到该产品的成员');
+                                        }
+                                    });
+                                } else {
+                                    console.log('找不到该产品的版本');
+                                }
+                            })
+                    }
+                    )
                     return;
                 } else {
                     throw new Error('找不到该产品');

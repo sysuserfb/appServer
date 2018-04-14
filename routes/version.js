@@ -6,6 +6,36 @@ var muilter = require('../module/multerUtil');
 var fs = require('fs');
 var path = require('path');
 
+router.get('/packageDownload', function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin','*')
+    version.scope('detail').findById(req.query.version_id).then((ver) => {
+        console.log(ver);
+
+        if (ver != null) {
+            var curPath = path.resolve(__dirname, '..') + "\\" + ver.pack_path
+            fs.exists(curPath, (exist) => {
+                if (exist) {
+                    var fileFormat = (ver.pack_path).split(".");
+                    res.download(curPath, ver.normal_name+'.'+fileFormat[fileFormat.length - 1]);
+                } else {
+                    res.status(404).json(failret('找不到该资源包'))
+                }
+            })
+        } else {
+            res.json(failret('找不到该版本'))
+        }
+    })
+});
+router.get('/getReport',function(req,res,next){
+    report.findAll({where:{version_id:req.query.version_id},include:[{model:user,required:false}]}).then((reps)=>{
+        console.log(reps);
+        
+        var ret=successret('查找成功');
+        ret.reportList=reps;
+        res.json(ret);
+    },err=>{console.log(err);res.json(failret(err))})
+});
+
 router.post('/newVersion', muilter.single('file'), function (req, res, next) {
     var form = req.body;
     var file = req.file;

@@ -13,6 +13,11 @@ var productRouter = require('./routes/product');
 
 var app = express();
 
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  next();
+  });
+
 // view engine setup
 //开启mysql服务
 app.set('views', path.join(__dirname, 'views'));

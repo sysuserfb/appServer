@@ -1,4 +1,5 @@
 var multer = require('multer');
+var md5 = require('md5')
 var storage = multer.diskStorage({
     //设置上传后文件路径，uploads文件夹会自动创建。
     destination: function (req, file, cb) {
@@ -8,7 +9,7 @@ var storage = multer.diskStorage({
     filename: function (req, file, cb) {
         var fileFormat = (file.originalname).split(".");
         //  cb(null, file.fieldname + '-' + Date.now() + "." + fileFormat[fileFormat.length - 1]);
-        cb(null, Date.now() + "_" + file.originalname);
+        cb(null, md5(file) + "_" + file.originalname);
     }
 });
 //添加配置文件到muler对象。

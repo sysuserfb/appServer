@@ -140,7 +140,8 @@ module.exports = {
     },
     status: {
       //0 unread, 1 readed
-      type: Sequelize.BOOLEAN
+      type: Sequelize.BOOLEAN,
+      defaultValue:0
     }
   }),
 }

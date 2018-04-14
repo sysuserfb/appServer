@@ -52,18 +52,6 @@ router.get('/getMessage', function (req, res, next) {
     res.json()
   })
 });
-router.get('/getReport', function (req, res, next) {
-  report.findAll({ where: { version_id: req.query.version_id } }).then((reps) => {
-    var ret = success;
-    ret.msg = "获取成功";
-    ret.report = reps;
-    res.json(ret);
-  }, err => {
-    var ret = failed;
-    ret.msg = err;
-    res.json()
-  })
-})
 
 router.post('/submitReport', function (req, res, next) {
   var form = req.body;
